@@ -5,49 +5,50 @@ import { useState, useEffect } from "react";
 interface Review {
   id: number;
   comment: string;
-  [key: string]: any; // in case API returns extra fields
 }
 
-// Props type
 interface ReviewSectionProps {
-  propertyId: string; // the id from PropertyDetail page
+  propertyId: string | number;
 }
 
 const ReviewSection = ({ propertyId }: ReviewSectionProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
-      if (!propertyId) return;
       try {
         const response = await axios.get<Review[]>(
           `/api/properties/${propertyId}/reviews`
         );
         setReviews(response.data);
-      } catch (err) {
-        console.error("Error fetching reviews:", err);
-        setError("Failed to load reviews.");
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReviews();
+    if (propertyId) {
+      fetchReviews();
+    }
   }, [propertyId]);
 
-  if (loading) return <p>Loading reviews...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
-  if (reviews.length === 0) return <p>No reviews yet.</p>;
+  if (loading) {
+    return <p>Loading reviews...</p>;
+  }
 
   return (
-    <div className="space-y-4">
-      {reviews.map((review) => (
-        <div key={review.id} className="p-4 border rounded">
-          <p>{review.comment}</p>
-        </div>
-      ))}
+    <div>
+      {reviews.length === 0 ? (
+        <p>No reviews yet.</p>
+      ) : (
+        reviews.map((review) => (
+          <div key={review.id}>
+            <p>{review.comment}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 };
