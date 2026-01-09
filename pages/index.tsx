@@ -29,6 +29,7 @@ export default function Home() {
       {properties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}
+      
     </div>
   );
 }
