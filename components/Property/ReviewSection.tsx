@@ -1,26 +1,26 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-// Define a type for individual reviews
+// Define the type for each review
 interface Review {
   id: number;
   comment: string;
-  rating?: number; // optional if your API provides rating
-  author?: string; // optional if your API provides author
+  [key: string]: any; // in case API returns extra fields
 }
 
-// Props for the component
+// Props type
 interface ReviewSectionProps {
-  propertyId: number;
+  propertyId: string; // the id from PropertyDetail page
 }
 
 const ReviewSection = ({ propertyId }: ReviewSectionProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
+      if (!propertyId) return;
       try {
         const response = await axios.get<Review[]>(
           `/api/properties/${propertyId}/reviews`
@@ -28,41 +28,24 @@ const ReviewSection = ({ propertyId }: ReviewSectionProps) => {
         setReviews(response.data);
       } catch (err) {
         console.error("Error fetching reviews:", err);
-        setError("Failed to load reviews");
+        setError("Failed to load reviews.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (propertyId) {
-      fetchReviews();
-    }
+    fetchReviews();
   }, [propertyId]);
 
-  if (loading) {
-    return <p>Loading reviews...</p>;
-  }
-
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
-
-  if (reviews.length === 0) {
-    return <p>No reviews yet for this property.</p>;
-  }
+  if (loading) return <p>Loading reviews...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (reviews.length === 0) return <p>No reviews yet.</p>;
 
   return (
     <div className="space-y-4">
       {reviews.map((review) => (
-        <div
-          key={review.id}
-          className="border p-4 rounded-md shadow-sm bg-white"
-        >
-          {review.author && <p className="font-semibold">{review.author}</p>}
+        <div key={review.id} className="p-4 border rounded">
           <p>{review.comment}</p>
-          {review.rating !== undefined && (
-            <p className="text-yellow-500">Rating: {review.rating}/5</p>
-          )}
         </div>
       ))}
     </div>
